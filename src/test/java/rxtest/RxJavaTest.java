@@ -1,11 +1,13 @@
 package rxtest;
 
 import io.reactivex.Flowable;
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import org.junit.Test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class RxJavaTest {
@@ -17,6 +19,44 @@ public class RxJavaTest {
         nombres.map(String::toUpperCase).subscribe(System.out::println);
 
         System.out.println("Finished");
+    }
+
+    @Test
+    public void pruebaMiguel() throws InterruptedException {
+        Flowable<String> nombres = Flowable.just("Capitan America", "Iron man", "Spider man");
+
+        nombres.subscribeOn(Schedulers.computation()).map(nombre -> {
+            System.out.println("Thread: " + Thread.currentThread().getName());
+            return nombre.toUpperCase();
+        }).subscribe(System.out::println);
+
+        System.out.println("Finished");
+        Thread.sleep(1000);
+    }
+
+    @Test
+    public void pruebaMiguel2() {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Observable.fromArray(1, 2, 3, 4)
+                .subscribeOn(Schedulers.computation())
+                .scan((x, y) -> x + y)
+                .lastElement()
+// .subscribe(System.out::println, Throwable::printStackTrace,
+// () -> {
+// synchronized (key) {
+// key.notifyAll(); //TODO
+// }
+// });
+                .subscribe(System.out::println, Throwable::printStackTrace, countDownLatch::countDown);
+// synchronized (key) {
+// key.wait();
+// }
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+// Thread.sleep(10000);
     }
 
     @Test

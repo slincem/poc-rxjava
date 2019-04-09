@@ -1,6 +1,7 @@
 package rxtest;
 
 import io.reactivex.*;
+import io.reactivex.internal.operators.completable.CompletableLift;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -216,5 +217,67 @@ public class RxJavaOperatorsTest {
     @Test
     public void timerOperatorTest() {
 
+    }
+
+    @Test
+    public void maybeEmptyType() {
+        Maybe<Integer> emptySource = Maybe.empty();
+        emptySource.subscribe(
+                s -> System.out.println("Item received: from emptySource" + s),
+                Throwable::printStackTrace,
+                () -> System.out.println("Done from EmptySource")
+        );
+    }
+
+    @Test
+    public void maybeNotEmptyType() {
+        Maybe<Integer> emptySource = Maybe.just(1);
+        emptySource.subscribe(
+                s -> System.out.println("Item received: from emptySource" + s),
+                Throwable::printStackTrace,
+                () -> System.out.println("Done from EmptySource")
+        );
+    }
+
+    //Variable needed to test
+    Integer countDefer = 5;
+    @Test
+    public void deferOperator() {
+        int countNoDefer = 5;
+        Observable<Integer> sourceNoDefer = Observable.range(1, countNoDefer);
+        sourceNoDefer.subscribe(System.out::print);
+        countNoDefer = 10;
+        System.out.println();
+        sourceNoDefer.subscribe(System.out::print);
+
+
+        System.out.println("\n------------------- DEFER ------------------");
+
+
+        Observable<Integer> sourceDefer = Observable.defer(() -> Observable.range(1, countDefer));
+        sourceDefer.subscribe(System.out::print);
+        countDefer = 10;
+        System.out.println();
+        sourceDefer.subscribe(System.out::print);
+    }
+
+    @Test
+    public void fromCallableObservable() {
+        // Observable<Integer> source = Observable.just(1/0);
+        // source.subscribe(System.out::println, e -> System.out.println("excepcion: " + e));
+
+        // The solution for the code above.
+        // si inicializar tu observable tiene probabilidad de error usa fromCallable.
+        Observable<Integer> source = Observable.fromCallable(() -> 1/0);
+        source.subscribe(System.out::println, e -> System.out.println("excepcion: " + e));
+
+    }
+
+    @Test
+    public void completable() {
+        // Cuando quieres ejecutar algo que no emitirá nada. Se llama a lo que se encuentre en el fromRunnable y luego el onComplete.
+        Completable source = Completable.fromRunnable(() -> System.out.println("CORRIO"));
+
+        source.subscribe(() -> System.out.println("DONE"));
     }
 }
